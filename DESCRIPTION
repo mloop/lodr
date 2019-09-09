@@ -1,0 +1,12 @@
+Package: lodr
+Type: Package
+Title: Linear Model Fitting with LOD Covariates
+Version: 1.0
+Date: 2019-09-09
+Author: Kevin Donovan
+Maintainer: Kevin Donovan <kmdono02@ad.unc.edu>
+Description: Fit linear regression model to data while taking into account covariates with lower limit of detection (LOD)
+License: GPL (>= 2)
+Imports: Rcpp (>= 1.0.2)
+LinkingTo: Rcpp, RcppArmadillo
+LazyData: true

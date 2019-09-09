@@ -1,0 +1,194 @@
+#################                     Function
+LOD_regression <- function(dataset, frmla, d, var_LOD,
+                           nSamples=250,
+                           convergenceCriterion=0.001,
+                              betaCensStartIndex, betaCensEndIndex){
+  cl <- match.call()
+  finalEstimates <- list()
+
+    ######################################################################
+    # Create required datasets                                           #
+    ######################################################################
+
+    dataset_Y <- model.frame(frmla,data=dataset)[1]
+    dataset_X <- data.frame(model.matrix(frmla, dataset))[,-1]
+    subData <- data.frame(cbind(dataset_Y,Intercept=1,dataset_X))
+
+    Data <- subData
+    sub2Data <- subData
+
+    sqrt2LOd <- function(x){
+      ifelse(x>0, x/sqrt(2), x*sqrt(2))
+    }
+    subd <- sqrt2LOd(d)
+
+    for(i in 1:length(var_LOD)){
+      Data[[var_LOD[i]]] <- ifelse(subData[[var_LOD[i]]]>d[i],
+                                   subData[[var_LOD[i]]], NA)
+
+      sub2Data[[var_LOD[i]]] <- ifelse(subData[[var_LOD[i]]]>d[i],
+                                       subData[[var_LOD[i]]], subd[i])
+    }
+
+    # Create data for analysis
+    ## Obs (Data), complete case (ccData), sub (subData), and sub sqrt2 (sub2Data) datasets
+    ccData <- Data[complete.cases(Data),]
+
+    ######################################################################
+    # Enter convergence criterion, LOD, etc.                             #
+    ######################################################################
+
+    n <- dim(Data)[1]
+    nObservations <- n
+
+    #######################################################################
+    # Perform Complete-Case, Substitution Analysis                        #
+    #######################################################################
+
+    ccModel <- glm( frmla,
+                    family = gaussian(), data = ccData )
+
+    ######################################################################
+    # Perform all Substitution Analyses                                  #
+    ######################################################################
+
+    # Using LOD for sub
+    ccSub_LOD <- glm( frmla,
+                      family = gaussian(), data = subData )
+
+    # Using LOD/sqrt(2) for sub
+    ccSub_LODsqrt2 <- glm( frmla,
+                           family = gaussian(), data = sub2Data )
+
+    ######################################################################
+    # Obtain parameter estimates to be used as initial estimates in ARMS #
+    ######################################################################
+
+    # Extract Beta and residual variance
+    BetaEstimatesCC <- as.numeric( summary( ccModel )$coefficients[,1])
+    names(BetaEstimatesCC) <- rownames(summary( ccModel )$coefficients)
+    BetaEstimatesSubsqrt2 <- as.numeric( summary( ccSub_LODsqrt2 )$coefficients[,1])
+    names(BetaEstimatesSubsqrt2) <- rownames(summary( ccSub_LODsqrt2 )$coefficients)
+
+    # Extract mean vector estimate and covariance matrix estimate of covariates
+    cat_var <- names(ccModel$contrasts)
+    length_unique <- function(x){length(unique(x))}
+    unique_values <- apply(dataset_X, MARGIN=2,FUN=length_unique)
+    binary_vars <- names(unique_values[unique_values<3])
+    remove_vars <- c(var_LOD, cat_var, binary_vars)
+    var_noLOD <- names(dataset_X[,!(names(dataset_X)%in%remove_vars),
+                                 drop=FALSE])
+
+    xMeanCC <- apply( ccData[,c(var_noLOD, var_LOD)], 2, mean ) #-1 to eliminate outcome Y
+    xCovCC <- cov( ccData[,c(var_noLOD, var_LOD)] )
+
+    #######################################################################
+    # Perform ARMS MLE Sampling using C++ compiled code                                          #
+    #######################################################################
+
+    # Create matrix to hold limits of detection
+    LOD_mat <- cbind(rep(-100, dim(Data[,-1])[2]), rep(NA, dim(Data[,-1])[2]))
+    LOD_mat[which(names(Data[,-1])%in%var_LOD),2] <- d
+
+    # Estimation
+    est_obj <- LOD_fit_multiple(y_data=Data[,1], x_data=as.matrix(Data[,-1]),
+                     mean_x_preds=xMeanCC,
+                     beta=BetaEstimatesCC,
+                     sigma_2_y = sigma(ccModel)^2,
+                     sigma_x_preds = xCovCC,
+                     no_of_samples=250, threshold = 0.001, max_iterations = 100,
+                     LOD_u_l = LOD_mat,
+                     sampler = 0)
+
+    # Create lm_lod object
+    LOD_ests <- est_obj$beta_estimate_last_iteration
+    
+   names(LOD_ests) <- colnames(model.matrix(frmla, dataset))
+   finalEstimates$coefficients <- LOD_ests
+
+   finalEstimates$fitted.values <- as.matrix(Data[,-1])%*%LOD_ests
+   finalEstimates$rank <- dim(Data[,-1])[2]
+   finalEstimates$residuals <- Data[,1]-finalEstimates$fitted.values
+   finalEstimates$df.residual <- n-dim(Data[,-1])[2]
+   if(!is.null(cat_var)){
+     finalEstimates$xlevels <- list()
+     for(i in 1:length(cat_var)){
+       finalEstimates$xlevels[[cat_var]] <- levels(subData[[cat_var]])
+     }
+   }
+   finalEstimates$model <- subset(Data, select=-c(Intercept))
+   finalEstimates$terms <- ccModel$terms
+   finalEstimates$call <- cl
+
+   class(finalEstimates) <- "lod_lm"
+   return(finalEstimates)
+}
+##############################################################
+
+## Create new generic fns: summary, print, coef, effects, residuals, fitted, vcov
+# print
+print.lod_lm <- function(x){
+  print(list("call"=x$call,
+             "coefficients"=x$coefficients))
+}
+
+# summary
+summary.lod_lm <- function(x){
+  output_obj <- list()
+  param_values <- as.list(x$call)
+
+  # coefficients
+  coefficients_mat <- matrix(nrow=dim(model.matrix(eval(param_values$frmla),
+                                                  eval(param_values$dataset)))[2],
+                             ncol=4)
+  rownames(coefficients_mat) <- colnames(model.matrix(eval(param_values$frmla),
+                                                      eval(param_values$dataset)))
+  colnames(coefficients_mat) <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
+  coefficients_mat[,"Estimate"] <- x$coefficients
+  coefficients_mat[,"Std. Error"] <- sqrt(vcov(x))
+  coefficients_mat[,"t value"] <- coefficients_mat[,"Estimate"]/coefficients_mat[,"Std. Error"]
+  coefficients_mat[,"Pr(>|t|)"] <- 2*(1-pt(abs(coefficients_mat[,"t value"]),
+                                        df=dim(model.matrix(eval(param_values$frmla),
+                                                            eval(param_values$dataset)))[1]-
+                                          dim(model.matrix(eval(param_values$frmla),
+                                                            eval(param_values$dataset)))[2]))
+  return(coefficients_mat)
+}
+
+# coef
+coef.lod_lm <- function(x){
+  print(x$coefficients)
+}
+
+# residuals
+residuals.lod_lm <- function(x){
+  print(x$residuals)
+}
+
+# fitted
+fitted.lod_lm <- function(x){
+  print(x$fitted.values)
+}
+
+#vcov
+vcov.lod_lm <- function(x, boots=25){
+  param_values <- as.list(x$call)
+
+  x_data_obs <- model.matrix(eval(param_values$frmla),
+                             eval(param_values$dataset))
+  y_data <- x$model[[1]]
+
+  LOD_mat <- cbind(rep(-100, dim(x_data_obs)[2]),
+                   rep(NA, dim(x_data_obs)[2]))
+  LOD_mat[which(colnames(x_data_obs)%in%eval(param_values$var_LOD)),2] <-
+    eval(param_values$d)
+
+  boot_obj <- bootstrap_multi_test(num_of_boots = boots,
+                       y_data=y_data, x_data=x_data_obs,
+                       no_of_samples=250, threshold = 0.001, max_iterations = 100,
+                       LOD_u_l = LOD_mat,
+                       sampler = 0)
+  vars <- (apply(do.call("rbind", boot_obj), 2, sd))^2
+  names(vars) <- colnames(x_data_obs)
+  return(vars)
+}
