@@ -1,5 +1,5 @@
 #################                     Function
-LOD_regression <- function(dataset, frmla, d, var_LOD,
+lod_lm <- function(dataset, frmla, d, var_LOD,
                            nSamples=250,
                            convergenceCriterion=0.001,
                               betaCensStartIndex, betaCensEndIndex){
