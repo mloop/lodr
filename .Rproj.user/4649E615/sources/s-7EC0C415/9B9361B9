@@ -1,17 +1,19 @@
 {
     "collab_server" : "",
     "contents" : "",
-    "created" : 1568139752168.000,
+    "created" : 1570027387083.000,
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "1890209629",
-    "id" : "9F9A7C92",
-    "lastKnownWriteTime" : 1565622060,
-    "last_content_update" : 1565622060,
-    "path" : "C:/Users/kmdono02/Desktop/svm_run.R",
-    "project_path" : null,
+    "hash" : "126524236",
+    "id" : "9B9361B9",
+    "lastKnownWriteTime" : 1570027757,
+    "last_content_update" : 1570027757279,
+    "path" : "~/GitHub/lodr/R/LOD_reg.R",
+    "project_path" : "R/LOD_reg.R",
     "properties" : {
+        "cursorPosition" : "184,25",
+        "scrollLine" : "176"
     },
     "read_only" : false,
     "read_only_alternatives" : [
