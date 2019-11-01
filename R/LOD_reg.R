@@ -90,14 +90,14 @@ lod_lm <- function(data, frmla, lod, var_LOD,
     LOD_mat[which(names(Data[,-1])%in%var_LOD),2] <- lod
 
     # Estimation
-    est_obj <- LOD_fit_multiple(y_data=Data[,1], x_data=as.matrix(Data[,-1]),
+    est_obj2 <- debug2(y_data=Data[,1], x_data=as.matrix(Data[,-1]),
                      mean_x_preds=xMeanCC,
                      beta=BetaEstimatesCC,
                      sigma_2_y = sigma(ccModel)^2,
                      sigma_x_preds = xCovCC,
                      no_of_samples=nSamples, 
                      threshold = convergenceCriterion, 
-                     max_iterations = 100,
+                     max_iterations = 10,
                      LOD_u_l = LOD_mat,
                      sampler = 0)
 
@@ -184,7 +184,7 @@ vcov.lod_lm <- function(x, boots=25){
   LOD_mat[which(colnames(x_data_obs)%in%eval(param_values$var_LOD)),2] <-
     eval(param_values$lod)
 
-  boot_obj <- bootstrap_multi_test(num_of_boots = boots,
+  boot_obj <- LOD_bootstrap_fit(num_of_boots = boots,
                        y_data=y_data, x_data=x_data_obs,
                        no_of_samples=250, threshold = 0.001, max_iterations = 100,
                        LOD_u_l = LOD_mat,

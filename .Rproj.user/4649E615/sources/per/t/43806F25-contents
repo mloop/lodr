@@ -459,7 +459,7 @@ void debug(arma::vec y_data, arma::mat x_data,
           if(sampler==0){
             if(s==0){
 
-              for(uword l=0; l<missing_indicies.n_elem; l=l+1){
+              for(int l=0; l<missing_indicies.n_elem; l=l+1){
                 cout << "Starting values: Pre-Burn In" << d.x_preds << endl;
                 d.missing_pred = missing_indicies(l); 
                 double burn_in_inital = slice_fcs(norm_multi, d, xprev(d.missing_pred), 
@@ -469,11 +469,9 @@ void debug(arma::vec y_data, arma::mat x_data,
                 (d.x_preds)(d.missing_pred)= burn_in_inital;
                 
                 cout << "Burn in value: " << burn_in_inital << endl;
-                cout << "Burn in likelihood: " << norm_multi(burn_in_inital, d) << endl;
-                
               }
               
-              for(uword l=0; l<missing_indicies.n_elem; l=l+1){
+              for(int l=0; l<missing_indicies.n_elem; l=l+1){
 
                 cout << "Starting Points: " << d.x_preds << endl;
                 
@@ -486,7 +484,7 @@ void debug(arma::vec y_data, arma::mat x_data,
                 
              }
             }else{
-              for(uword l=0; l<missing_indicies.n_elem; l=l+1){
+              for(int l=0; l<missing_indicies.n_elem; l=l+1){
                 cout << "Starting Points: " << d.x_preds << endl;
                 
                 d.missing_pred = missing_indicies(l);
@@ -499,7 +497,7 @@ void debug(arma::vec y_data, arma::mat x_data,
             }
           }else{
             /* Set ARMS parameters */ 
-            for(uword l=0; l<missing_indicies.n_elem; l=l+1){
+            for(int l=0; l<missing_indicies.n_elem; l=l+1){
               
               /* Sample using slice sampler */ 
               d.missing_pred = missing_indicies(l);  
@@ -590,150 +588,6 @@ void debug(arma::vec y_data, arma::mat x_data,
 }
 
 // [[Rcpp::export]]
-mat debug2(arma::vec y_data, arma::mat x_data, 
-           arma::vec mean_x_preds, arma::vec beta, double sigma_2_y, 
-           arma::mat sigma_x_preds,
-           int no_of_samples,
-           double threshold, int max_iterations,
-           arma::mat LOD_u_l,
-           int sampler){
-  
-  /* Set objects to index iterations and stop when finished */
-  arma::vec ids_LOD=zeros(x_data.n_rows);
-  for(int i=0; i<x_data.n_rows; i=i+1){
-    if((x_data.row(i)).has_nan()){
-      ids_LOD(i)=1;
-    }
-  }
-  
-  /* Set starting point for slice sampler parameters */ 
-  arma::vec y_expand;
-  arma::mat x_data_return;
-  
-  arma::vec diff = zeros(beta.n_elem)+threshold+1.0;
-  
-  arma::vec weighted_mean_x_preds = mean_x_preds;
-  arma::mat weighted_cov_x_preds = sigma_x_preds;
-  
-  arma::mat beta_estimates=mat(max_iterations, x_data.n_cols, fill::zeros);
-  beta_estimates.row(0) = trans(beta);
-  
-  for(int t=0; t<max_iterations; t=t+1){
-    unsigned row_index_count = 0;
-    y_expand=zeros(no_of_samples*accu(ids_LOD)+x_data.n_rows-accu(ids_LOD));
-    x_data_return=mat(no_of_samples*accu(ids_LOD)+x_data.n_rows-accu(ids_LOD),x_data.n_cols+1,fill::zeros);
-    arma::vec xprev=vec(LOD_u_l.n_rows);
-
-    for(int i=0; i <x_data.n_rows ;i=i+1){
-      /* Set starting point for slice sampler parameters */
-      for(int j=0; j<LOD_u_l.n_rows; j=j+1){
-        if(LOD_u_l(j,1)<0){
-          xprev(j)=as_scalar(LOD_u_l(j,1))*sqrt(2);
-        }else{
-          xprev(j)=as_scalar(LOD_u_l(j,1))/sqrt(2);
-        }
-      }
-
-      norm_parm d;
-      d.y = as_scalar(y_data(i));
-      d.x_preds = trans(x_data.row(i));
-      d.beta = beta;
-      d.sigma_2_y = sigma_2_y;
-
-      d.sigma_x_preds = sigma_x_preds;
-      d.mean_x_preds = mean_x_preds;
-
-      if( (d.x_preds).has_nan() == FALSE){
-
-        row_index_count = row_index_count + 1;
-        y_expand(row_index_count-1) = d.y;
-        x_data_return(arma::uvec {row_index_count-1}, find_finite(d.x_preds)) = trans(d.x_preds);
-        x_data_return(row_index_count-1, x_data_return.n_cols-1) = 1;
-
-      }
-      else {
-
-        // create vector to hold indicies of missing biomarkers
-        arma::uvec missing_indicies = find_nonfinite(d.x_preds);
-        cout << "Subject : " << i << endl; 
-        for(int s=0; s<no_of_samples; s=s+1){
-          d.x_preds = trans(x_data.row(i));
-          cout << "Sample No. : " << s << endl;
-
-          row_index_count = row_index_count + 1;
-
-          y_expand(row_index_count-1) = d.y;
-          cout << "Outcome : " << y_expand(row_index_count-1) << endl; 
-          cout << "Covariates-Before : " << d.x_preds << endl; 
-          
-          (d.x_preds)(missing_indicies) = xprev(missing_indicies);
-          
-          cout << "Covariates-After : " << d.x_preds << endl; 
-          
-
-          /* Sample using slice sampler */
-          double xsamp;
-            if(s==0){
-
-              for(uword l=0; l<missing_indicies.n_elem; l=l+1){
-                cout << "Starting values: Pre-Burn In" << d.x_preds << endl;
-                d.missing_pred = missing_indicies(l);
-                double burn_in_inital = slice_fcs(norm_multi, d, xprev(d.missing_pred),
-                                                  as_scalar(LOD_u_l(arma::uvec {d.missing_pred}, arma::uvec {0})), as_scalar(LOD_u_l(arma::uvec {d.missing_pred}, arma::uvec {1})));
-                xprev(d.missing_pred) = burn_in_inital;
-
-                (d.x_preds)(d.missing_pred)= burn_in_inital;
-
-                cout << "Burn in value: " << burn_in_inital << endl;
-                cout << "Burn in likelihood: " << norm_multi(burn_in_inital, d) << endl;
-                (d.x_preds)(d.missing_pred)=burn_in_inital; //Remove
-              }
-            } //Remove
-            x_data_return(arma::uvec {row_index_count-1}, find_finite(d.x_preds))=trans(d.x_preds); //Remove
-            x_data_return(row_index_count-1, x_data_return.n_cols-1) = (1.0)/no_of_samples; //Remove
-        } //Remove
-      } //Remove
-      // 
-      //         for(uword l=0; l<missing_indicies.n_elem; l=l+1){
-      // 
-      //           cout << "Starting Points: " << d.x_preds << endl;
-      // 
-      //           d.missing_pred = missing_indicies(l);
-      //           xsamp=slice_fcs(norm_multi, d, xprev(d.missing_pred),
-      //                           as_scalar(LOD_u_l(arma::uvec {d.missing_pred}, arma::uvec {0})), as_scalar(LOD_u_l(arma::uvec {d.missing_pred}, arma::uvec {1})), 1);
-      //           (d.x_preds)(d.missing_pred)=xsamp;
-      //           cout << "Sampled Value: " << xsamp << endl;
-      //           cout << "New Vector: " << d.x_preds << endl;
-      // 
-      //         }
-      //       }else{
-      //         for(uword l=0; l<missing_indicies.n_elem; l=l+1){
-      //           cout << "Starting Points: " << d.x_preds << endl;
-      // 
-      //           d.missing_pred = missing_indicies(l);
-      //           xsamp=slice_fcs(norm_multi, d, xprev(d.missing_pred),
-      //                           as_scalar(LOD_u_l(arma::uvec {d.missing_pred}, arma::uvec {0})), as_scalar(LOD_u_l(arma::uvec {d.missing_pred}, arma::uvec {1})), 1);
-      //           (d.x_preds)(d.missing_pred)=xsamp;
-      //           cout << "Sampled Value: " << xsamp << endl;
-      //           cout << "New Vector: " << d.x_preds << endl;
-      //         }
-      //       }
-      // 
-      //     x_data_return(arma::uvec {row_index_count-1}, find_finite(d.x_preds))=trans(d.x_preds);
-      //     x_data_return(row_index_count-1, x_data_return.n_cols-1) = (1.0)/no_of_samples;
-      // 
-      //   }
-      // }
-    }
-  }
-  return x_data_return;
-  // return List::create(Named("y_expand_last_int") = y_expand,
-  //                     Named("x_data_return_last_int") = x_data_return,
-  //                     Named("beta_estimates") = beta_estimates,
-  //                     Named("beta_estimate_last_iteration") = beta_estimates.row(iteration_index));
-}
-
-// [[Rcpp::export]]
 double slice_fcs_debug(vec obs_preds,
                        double y,
                        int missing_pred,
@@ -802,21 +656,4 @@ double slice_fcs_debug(vec obs_preds,
     // cout << x_1 << endl;
   }
   return x_1;
-}
-
-// [[Rcpp::export]]
-double norm_multi_debug(double x, vec x_preds, double y,
-                        int missing_pred, vec beta, vec mean_x_preds, 
-                        mat sigma_x_preds, double sigma_2_y)
-{
-  arma::vec obs_preds = x_preds;
-  obs_preds.shed_row(missing_pred);
-  arma::vec beta_obs = beta;
-  beta_obs.shed_row(missing_pred);
-  double mean_y = dot(obs_preds,beta_obs)+as_scalar((beta)(missing_pred))*x;
-  arma::vec x_preds_noint = x_preds;
-  x_preds_noint(missing_pred) = x;
-  x_preds_noint.shed_row(1); // remove intercept
-  arma::vec x_minus_mu = x_preds_noint - (mean_x_preds);
-  return -0.5*(pow((y) - mean_y, 2.0)/(sigma_2_y))-0.5*as_scalar(x_minus_mu.t()*inv(sigma_x_preds)*x_minus_mu);
 }

@@ -9,3 +9,7 @@ LOD_bootstrap_fit <- function(num_of_boots, y_data, x_data, no_of_samples, thres
     .Call(`_lodr_LOD_bootstrap_fit`, num_of_boots, y_data, x_data, no_of_samples, threshold, max_iterations, LOD_u_l, sampler)
 }
 
+debug <- function(y_data, x_data, mean_x_preds, beta, sigma_2_y, sigma_x_preds, no_of_samples, threshold, max_iterations, LOD_u_l, sampler) {
+    .Call(`_lodr_debug`, y_data, x_data, mean_x_preds, beta, sigma_2_y, sigma_x_preds, no_of_samples, threshold, max_iterations, LOD_u_l, sampler)
+}
+

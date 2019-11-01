@@ -1,0 +1,25 @@
+library(Rcpp)
+library(RcppArmadillo)
+
+sourceCpp("src/ARMS_slice_LOD.cpp")
+
+nSamples=5
+convergenceCriterion=0.001
+data=lodr::lod_data_ex
+frmla=Y~X2+X1+X3
+lod=c(0, 0)
+var_LOD = c("X2","X3")
+
+y_data_extract <- Data[100,1]
+x_data_extract <- Data[100,-1]
+x_data_extract[is.na(x_data_extract)] <- 0
+
+slice_fcs_debug(y=y_data_extract, 
+                obs_preds=x_data_extract,
+                missing_pred = 1L,
+                mean_x_preds=xMeanCC,
+                beta=BetaEstimatesCC,
+                sigma_2_y = sigma(ccModel)^2,
+                sigma_x_preds = xCovCC, 
+                init_x0 = x_data_extract[1]
+                )
