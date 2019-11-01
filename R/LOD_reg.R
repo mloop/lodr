@@ -1,7 +1,8 @@
 #################                     Function
 lod_lm <- function(data, frmla, lod, var_LOD,
                            nSamples=250,
-                           convergenceCriterion=0.001){
+                           convergenceCriterion=0.001,
+                           boots=25){
   cl <- match.call()
   finalEstimates <- list()
 
@@ -11,7 +12,15 @@ lod_lm <- function(data, frmla, lod, var_LOD,
 
     dataset_Y <- model.frame(frmla,data=data)[1]
     dataset_X <- data.frame(model.matrix(frmla, data))[,-1]
-    subData <- data.frame(cbind(dataset_Y,Intercept=1,dataset_X))
+    
+    # Reorder dataset_X so LOD vars are last
+    dataset_X_reorder <- 
+      data.frame(dataset_X[,!names(dataset_X)%in%var_LOD],
+                 dataset_X[,names(dataset_X)%in%var_LOD])
+    names(dataset_X_reorder)[!names(dataset_X_reorder)%in%var_LOD] <- 
+      names(dataset_X)[!names(dataset_X)%in%var_LOD]
+    
+    subData <- data.frame(cbind(dataset_Y,Intercept=1,dataset_X_reorder))
 
     Data <- subData
     sub2Data <- subData
@@ -68,16 +77,25 @@ lod_lm <- function(data, frmla, lod, var_LOD,
     names(BetaEstimatesCC) <- rownames(summary( ccModel )$coefficients)
     BetaEstimatesSubsqrt2 <- as.numeric( summary( ccSub_LODsqrt2 )$coefficients[,1])
     names(BetaEstimatesSubsqrt2) <- rownames(summary( ccSub_LODsqrt2 )$coefficients)
-
+    
+    # Reorder Beta so LOD vars are last
+    beta_names_reordered <- 
+      c(names(BetaEstimatesCC)[!names(BetaEstimatesCC)%in%var_LOD],
+        names(BetaEstimatesCC)[names(BetaEstimatesCC)%in%var_LOD])
+    BetaEstimatesCC_reorder <- BetaEstimatesCC[beta_names_reordered]
+    BetaEstimatesSubsqrt2_reorder <- BetaEstimatesSubsqrt2[beta_names_reordered]
+    
     # Extract mean vector estimate and covariance matrix estimate of covariates
     cat_var <- names(ccModel$contrasts)
     length_unique <- function(x){length(unique(x))}
-    unique_values <- apply(dataset_X, MARGIN=2,FUN=length_unique)
+    unique_values <- apply(dataset_X_reorder, MARGIN=2,FUN=length_unique)
     binary_vars <- names(unique_values[unique_values<3])
     remove_vars <- c(var_LOD, cat_var, binary_vars)
-    var_noLOD <- names(dataset_X[,!(names(dataset_X)%in%remove_vars),
+    var_noLOD <- names(dataset_X_reorder[,!(names(dataset_X_reorder)%in%remove_vars),
                                  drop=FALSE])
     var_keep <- names(ccData)[names(ccData) %in% c(var_noLOD, var_LOD)]
+
+    # Reorder dataset before calcs so LOD vars are last
     xMeanCC <- apply( ccData[,var_keep], 2, mean ) #-1 to eliminate outcome Y
     xCovCC <- cov( ccData[,var_keep] )
 
@@ -85,28 +103,45 @@ lod_lm <- function(data, frmla, lod, var_LOD,
     # Perform ARMS MLE Sampling using C++ compiled code                                          #
     #######################################################################
 
-    # Create matrix to hold limits of detection
+    ## Create matrix to hold limits of detection
+    
     LOD_mat <- cbind(rep(-100, dim(Data[,-1])[2]), rep(NA, dim(Data[,-1])[2]))
     LOD_mat[which(names(Data[,-1])%in%var_LOD),2] <- lod
 
     # Estimation
-    est_obj2 <- debug2(y_data=Data[,1], x_data=as.matrix(Data[,-1]),
+    est_obj <- LOD_fit(y_data=Data[,1], 
+                                x_data=as.matrix(Data[,-1]),
                      mean_x_preds=xMeanCC,
-                     beta=BetaEstimatesCC,
+                     beta=BetaEstimatesCC_reorder,
                      sigma_2_y = sigma(ccModel)^2,
                      sigma_x_preds = xCovCC,
                      no_of_samples=nSamples, 
                      threshold = convergenceCriterion, 
-                     max_iterations = 10,
+                     max_iterations = 100,
                      LOD_u_l = LOD_mat,
                      sampler = 0)
+    
+    # Bootstrap SEs
+    boot_obj <- LOD_bootstrap_fit(num_of_boots=boots,
+                        y_data=Data[,1], 
+                      x_data=as.matrix(Data[,-1]),
+                      no_of_samples=nSamples, 
+                      threshold = convergenceCriterion, 
+                      max_iterations = 100,
+                      LOD_u_l = LOD_mat,
+                      sampler = 0)
 
     # Create lm_lod object
     LOD_ests <- est_obj$beta_estimate_last_iteration
-    
-   names(LOD_ests) <- colnames(model.matrix(frmla, data))
-   finalEstimates$coefficients <- LOD_ests
-
+   names(LOD_ests) <- names(BetaEstimatesCC_reorder)
+   
+   boot_SE_reorder <- apply(do.call("rbind", boot_obj), 2, sd)
+   names(boot_SE_reorder) <- names(BetaEstimatesCC_reorder)
+   
+   finalEstimates$coefficients <- 
+     LOD_ests[colnames(model.matrix(frmla, data))]
+   finalEstimates$boot_SE <- 
+     boot_SE_reorder[colnames(model.matrix(frmla, data))]
    finalEstimates$fitted.values <- as.matrix(Data[,-1])%*%LOD_ests
    finalEstimates$rank <- dim(Data[,-1])[2]
    finalEstimates$residuals <- Data[,1]-finalEstimates$fitted.values
@@ -114,11 +149,14 @@ lod_lm <- function(data, frmla, lod, var_LOD,
    if(!is.null(cat_var)){
      finalEstimates$xlevels <- list()
      for(i in 1:length(cat_var)){
-       finalEstimates$xlevels[[cat_var]] <- levels(subData[[cat_var]])
+       finalEstimates$xlevels[[cat_var]] <- levels(data[[cat_var]])
      }
    }
-   finalEstimates$model <- subset(Data, select=-c(Intercept))
-   finalEstimates$terms <- ccModel$terms
+
+   finalEstimates$model <- Data[,names(model.frame(frmla,data=data))]
+   finalEstimates$terms <- 
+     glm( frmla,
+          family = gaussian(), data = data )$terms
    finalEstimates$call <- cl
 
    class(finalEstimates) <- "lod_lm"
@@ -146,7 +184,7 @@ summary.lod_lm <- function(x){
                                                       eval(param_values$data)))
   colnames(coefficients_mat) <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
   coefficients_mat[,"Estimate"] <- x$coefficients
-  coefficients_mat[,"Std. Error"] <- sqrt(vcov(x))
+  coefficients_mat[,"Std. Error"] <- x$boot_SE
   coefficients_mat[,"t value"] <- coefficients_mat[,"Estimate"]/coefficients_mat[,"Std. Error"]
   coefficients_mat[,"Pr(>|t|)"] <- 2*(1-pt(abs(coefficients_mat[,"t value"]),
                                         df=dim(model.matrix(eval(param_values$frmla),
@@ -169,27 +207,4 @@ residuals.lod_lm <- function(x){
 # fitted
 fitted.lod_lm <- function(x){
   print(x$fitted.values)
-}
-
-#vcov
-vcov.lod_lm <- function(x, boots=25){
-  param_values <- as.list(x$call)
-
-  x_data_obs <- model.matrix(eval(param_values$frmla),
-                             eval(param_values$data))
-  y_data <- x$model[[1]]
-
-  LOD_mat <- cbind(rep(-100, dim(x_data_obs)[2]),
-                   rep(NA, dim(x_data_obs)[2]))
-  LOD_mat[which(colnames(x_data_obs)%in%eval(param_values$var_LOD)),2] <-
-    eval(param_values$lod)
-
-  boot_obj <- LOD_bootstrap_fit(num_of_boots = boots,
-                       y_data=y_data, x_data=x_data_obs,
-                       no_of_samples=250, threshold = 0.001, max_iterations = 100,
-                       LOD_u_l = LOD_mat,
-                       sampler = 0)
-  vars <- (apply(do.call("rbind", boot_obj), 2, sd))^2
-  names(vars) <- colnames(x_data_obs)
-  return(vars)
 }

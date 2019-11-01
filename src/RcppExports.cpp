@@ -45,32 +45,10 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// debug
-List debug(arma::vec y_data, arma::mat x_data, arma::vec mean_x_preds, arma::vec beta, double sigma_2_y, arma::mat sigma_x_preds, int no_of_samples, double threshold, int max_iterations, arma::mat LOD_u_l, int sampler);
-RcppExport SEXP _lodr_debug(SEXP y_dataSEXP, SEXP x_dataSEXP, SEXP mean_x_predsSEXP, SEXP betaSEXP, SEXP sigma_2_ySEXP, SEXP sigma_x_predsSEXP, SEXP no_of_samplesSEXP, SEXP thresholdSEXP, SEXP max_iterationsSEXP, SEXP LOD_u_lSEXP, SEXP samplerSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type y_data(y_dataSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type x_data(x_dataSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type mean_x_preds(mean_x_predsSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< double >::type sigma_2_y(sigma_2_ySEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type sigma_x_preds(sigma_x_predsSEXP);
-    Rcpp::traits::input_parameter< int >::type no_of_samples(no_of_samplesSEXP);
-    Rcpp::traits::input_parameter< double >::type threshold(thresholdSEXP);
-    Rcpp::traits::input_parameter< int >::type max_iterations(max_iterationsSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type LOD_u_l(LOD_u_lSEXP);
-    Rcpp::traits::input_parameter< int >::type sampler(samplerSEXP);
-    rcpp_result_gen = Rcpp::wrap(debug(y_data, x_data, mean_x_preds, beta, sigma_2_y, sigma_x_preds, no_of_samples, threshold, max_iterations, LOD_u_l, sampler));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_lodr_LOD_fit", (DL_FUNC) &_lodr_LOD_fit, 11},
     {"_lodr_LOD_bootstrap_fit", (DL_FUNC) &_lodr_LOD_bootstrap_fit, 8},
-    {"_lodr_debug", (DL_FUNC) &_lodr_debug, 11},
     {NULL, NULL, 0}
 };
 
