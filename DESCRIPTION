@@ -7,6 +7,7 @@ Author: Kevin Donovan
 Maintainer: Kevin Donovan <kmdono02@ad.unc.edu>
 Description: Fit linear regression model to data while taking into account covariates with lower limit of detection (LOD)
 License: GPL (>= 2)
-Imports: Rcpp (>= 1.0.2)
+Imports: Rcpp (>= 1.0.2), Rdpack
+RdMacros: Rdpack
 LinkingTo: Rcpp, RcppArmadillo
 LazyData: true
