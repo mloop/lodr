@@ -5,15 +5,15 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "1637030986",
+    "hash" : "2861245364",
     "id" : "65196B5",
-    "lastKnownWriteTime" : 1573758253,
-    "last_content_update" : 1573758253114,
+    "lastKnownWriteTime" : 1573758993,
+    "last_content_update" : 1573758993551,
     "path" : "~/GitHub/lodr/man/lod_lm.Rd",
     "project_path" : "man/lod_lm.Rd",
     "properties" : {
-        "cursorPosition" : "60,81",
-        "scrollLine" : "52"
+        "cursorPosition" : "60,76",
+        "scrollLine" : "53"
     },
     "read_only" : false,
     "read_only_alternatives" : [
