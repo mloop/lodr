@@ -4,10 +4,11 @@
   Fitting Linear Models with Covariates Subject to a Limit of Detection
 }
 \description{
-  \code{lod_lm} is used to fit linear models while taking into account limits of detection for corresponding covariates.  It carries out the method detailed in \insertCite{may}{lodr} with regression coefficient standard errors calculated using bootstrap resampling.
+  \code{lod_lm} is used to fit linear models while taking into account limits of detection for corresponding covariates.  It carries out the method detailed in \insertCite{mayd;textual}{lodr} with regression coefficient standard errors calculated using bootstrap resampling.
 }
 \usage{
-  lod_lm(data, frmla, lod, var_LOD, nSamples = 250, convergenceCriterion = 0.001, boots = 25)
+  lod_lm(data, frmla, lod, var_LOD, 
+  nSamples = 250, convergenceCriterion = 0.001, boots = 25)
 }
 \arguments{
   \item{data}{a required data frame (or object coercible by \link[base]{as.data.frame} to a data frame) containing the variables in the model.  If not specified, a corresponding error is returned.}
