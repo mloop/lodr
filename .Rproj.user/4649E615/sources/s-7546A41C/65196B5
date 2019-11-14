@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1573754530099.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "65196B5",
+    "lastKnownWriteTime" : 1573754836,
+    "last_content_update" : 1573754836245,
+    "path" : "~/GitHub/lodr/man/lod_lm.Rd",
+    "project_path" : "man/lod_lm.Rd",
+    "properties" : {
+        "cursorPosition" : "21,197",
+        "scrollLine" : "16"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_doc"
+}

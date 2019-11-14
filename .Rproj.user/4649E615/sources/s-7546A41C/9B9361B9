@@ -5,15 +5,15 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "126524236",
+    "hash" : "0",
     "id" : "9B9361B9",
-    "lastKnownWriteTime" : 1570027757,
-    "last_content_update" : 1570027757279,
+    "lastKnownWriteTime" : 1572634625,
+    "last_content_update" : 1572634625,
     "path" : "~/GitHub/lodr/R/LOD_reg.R",
     "project_path" : "R/LOD_reg.R",
     "properties" : {
         "cursorPosition" : "184,25",
-        "scrollLine" : "174"
+        "scrollLine" : "0"
     },
     "read_only" : false,
     "read_only_alternatives" : [
