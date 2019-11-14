@@ -58,7 +58,7 @@ Maintainer: Kevin Donovan <kmdono02@ad.unc.edu>
 \seealso{
   \code{\link[lodr]{summary.lod_lm}} for summaries of the results from \code{lod_lm}
 
-  The generic functions \code{link[stats]{fitted}} and \code{link[stats]{residuals}}.
+  The generic functions \code{link[stats]{coef}}, \code{link[stats]{fitted.values}} and \code{link[stats]{residuals}}.
 }
 \examples{
      library(lodr)
