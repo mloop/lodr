@@ -17,7 +17,7 @@ lod_data_ex
 \description{
 A simulated dataset containing a generic outcome varible and three covariates,
 two of which are subject to a lower limit of detection of 0, with a sample size
-of 100.  These data were simulated as follows.
+of 100.  See Details for information on how these data were generated.
 }
 \details{
 Each of the covariates were generated independently from 100 independent draws from 
