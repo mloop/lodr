@@ -12,7 +12,7 @@ lod_lm <- function(data, frmla, lod=NULL, var_LOD=NULL,
 ######################################################################
 
 if(is.null(lod)==TRUE|is.null(var_LOD)==TRUE){
-  warning("No LOD covariates and/or no LOD values provide: returning lm() call output")
+  warning("No LOD covariates and/or no LOD values provided: returning lm() call output")
   return(lm(frmla, data))
 }
   
@@ -187,13 +187,13 @@ if(!is.null(cat_var)){
 
 # Fill in values outside of LOD using method of choice, then calc fitted values and residuals
 fill_in_data <- Data
-if(method=="mean"){
+if(fill_in_method=="mean"){
   for(i in 1:length(var_LOD)){
     fill_in_data[is.na(fill_in_data[,var_LOD[i]]),var_LOD[i]] <- 
       mean(data[,var_LOD[i]], na.rm = TRUE)
   }
 }else{
-  if(method=="LOD"){
+  if(fill_in_method=="LOD"){
   for(i in 1:length(var_LOD)){
     fill_in_data[is.na(fill_in_data[,var_LOD[i]]),var_LOD[i]] <- lod[i]
   }
