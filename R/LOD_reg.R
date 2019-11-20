@@ -1,11 +1,41 @@
 #################                     Function
-lod_lm <- function(data, frmla, lod, var_LOD,
+lod_lm <- function(data, frmla, lod=NULL, var_LOD=NULL,
                            nSamples=250,
+                           fill_in_method="mean",
                            convergenceCriterion=0.001,
                            boots=25){
   cl <- match.call()
   finalEstimates <- list()
+  
+######################################################################
+# Check if lod/var_LOD are null: Return lm() fn call                 #
+######################################################################
 
+if(is.null(lod)==TRUE|is.null(var_LOD)==TRUE){
+  warning("No LOD covariates and/or no LOD values provide: returning lm() call output")
+  return(lm(frmla, data))
+}
+  
+if(all(var_LOD%in%colnames(data))==FALSE){
+  stop("LOD covariate(s) not in dataset")
+}
+  
+if(is.numeric(lod)==FALSE|any(is.na(lod))==TRUE){
+  stop("Argument lod not specified correctly; must be numeric vector with no missing values")
+}
+  
+if(is.numeric(nSamples)==FALSE|length(nSamples)>1|all(nSamples==as.integer(nSamples))==FALSE){
+  stop("Argument nSamples must be integer")
+}
+  
+if(is.numeric(boots)==FALSE|length(boots)>1|all(boots==as.integer(boots))==FALSE){
+  stop("Argument boots must be integer")
+}
+  
+if(is.numeric(convergenceCriterion)==FALSE|length(convergenceCriterion)>1|convergenceCriterion<0){
+  stop("Argument convergenceCriterion must be positive number")
+}
+  
 ######################################################################
 # Create required datasets                                           #
 ######################################################################
@@ -145,7 +175,6 @@ finalEstimates$coefficients <-
   LOD_ests[colnames(model.matrix(frmla, data))]
 finalEstimates$boot_SE <- 
   boot_SE_reorder[colnames(model.matrix(frmla, data))]
-finalEstimates$fitted.values <- as.matrix(Data[,-1])%*%LOD_ests
 finalEstimates$rank <- dim(Data[,-1])[2]
 finalEstimates$residuals <- Data[,1]-finalEstimates$fitted.values
 finalEstimates$df.residual <- n-dim(Data[,-1])[2]
@@ -156,6 +185,25 @@ if(!is.null(cat_var)){
   }
 }
 
+# Fill in values outside of LOD using method of choice, then calc fitted values and residuals
+fill_in_data <- Data
+if(method=="mean"){
+  for(i in 1:length(var_LOD)){
+    fill_in_data[is.na(fill_in_data[,var_LOD[i]]),var_LOD[i]] <- 
+      mean(data[,var_LOD[i]], na.rm = TRUE)
+  }
+}else{
+  if(method=="LOD"){
+  for(i in 1:length(var_LOD)){
+    fill_in_data[is.na(fill_in_data[,var_LOD[i]]),var_LOD[i]] <- lod[i]
+  }
+  }else{
+      stop("Argument method must be = mean or = LOD")
+    }
+}
+
+finalEstimates$fitted.values <- as.matrix(fill_in_data[,-1])%*%LOD_ests
+finalEstimates$residuals <- fill_in_data[,1]-finalEstimates$fitted.values
 finalEstimates$model <- Data[,names(model.frame(frmla,data=data))]
 finalEstimates$terms <- 
   glm( frmla,
@@ -176,25 +224,47 @@ print.lod_lm <- function(x){
 
 # summary
 summary.lod_lm <- function(x){
-  output_obj <- list()
-  param_values <- as.list(x$call)
-
-  # coefficients
-  coefficients_mat <- matrix(nrow=dim(model.matrix(eval(param_values$frmla),
-                                                  eval(param_values$data)))[2],
-                             ncol=4)
-  rownames(coefficients_mat) <- colnames(model.matrix(eval(param_values$frmla),
-                                                      eval(param_values$data)))
-  colnames(coefficients_mat) <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
-  coefficients_mat[,"Estimate"] <- x$coefficients
-  coefficients_mat[,"Std. Error"] <- x$boot_SE
-  coefficients_mat[,"t value"] <- coefficients_mat[,"Estimate"]/coefficients_mat[,"Std. Error"]
-  coefficients_mat[,"Pr(>|t|)"] <- 2*(1-pt(abs(coefficients_mat[,"t value"]),
-                                        df=dim(model.matrix(eval(param_values$frmla),
-                                                            eval(param_values$data)))[1]-
-                                          dim(model.matrix(eval(param_values$frmla),
-                                                            eval(param_values$data)))[2]))
-  return(coefficients_mat)
+    output_obj <- list()
+    param_values <- as.list(x$call)
+  
+    # coefficients
+    coefficients_mat <- matrix(nrow=dim(model.matrix(eval(param_values$frmla),
+                                                    eval(param_values$data)))[2],
+                               ncol=4)
+    rownames(coefficients_mat) <- colnames(model.matrix(eval(param_values$frmla),
+                                                        eval(param_values$data)))
+    colnames(coefficients_mat) <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
+    coefficients_mat[,"Estimate"] <- x$coefficients
+    coefficients_mat[,"Std. Error"] <- x$boot_SE
+    coefficients_mat[,"t value"] <- coefficients_mat[,"Estimate"]/coefficients_mat[,"Std. Error"]
+    coefficients_mat[,"Pr(>|t|)"] <- 2*(1-pt(abs(coefficients_mat[,"t value"]),
+                                          df=dim(model.matrix(eval(param_values$frmla),
+                                                              eval(param_values$data)))[1]-
+                                            dim(model.matrix(eval(param_values$frmla),
+                                                              eval(param_values$data)))[2]))
+    output_obj$coefficicents <- coefficients_mat
+    
+    # add in other components found in summary.lm, expect covariance matrix of coef estimates
+    output_obj$call <- x$call
+    output_obj$residuals <- x$residuals
+    output_obj$df <- c(x$rank, x$df.residual)
+    output_obj$sigma <- sum((x$residuals)^2)/(x$df.residual)
+    # ssm <- sum((x$fitted.values-mean(x$model[,1]))^2)
+    # f_stat <- 
+    #   (ssm/(x$rank-1))/output_obj$sigma
+    # output_obj$fstatistic <- c(f_stat, x$rank-1, x$df.residual)
+    # output_obj$r.squared <- 
+    #   1-(sum((x$residuals)^2)/sum((x$model[,1]-mean(x$model[,1]))^2))
+    # output_obj$adj.r.squared <-
+    #   1-(1-output_obj$r.squared)*((dim(x$mode)[1]-1)/(x$df.residual-1))
+    class(output_obj) <- "summary.lod_lm"
+    
+    return(output_obj)
+  }
+  
+# print summary
+print.summary.lod_lm <- function(object){
+  return(object$coefficicents)
 }
 
 # coef
