@@ -242,7 +242,7 @@ summary.lod_lm <- function(x){
                                                               eval(param_values$data)))[1]-
                                             dim(model.matrix(eval(param_values$frmla),
                                                               eval(param_values$data)))[2]))
-    output_obj$coefficicents <- coefficients_mat
+    output_obj$coefficients <- coefficients_mat
     
     # add in other components found in summary.lm, expect covariance matrix of coef estimates
     output_obj$call <- x$call
