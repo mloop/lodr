@@ -63,12 +63,12 @@ Maintainer: Kevin Donovan <kmdono02@ad.unc.edu>
   The generic functions \code{\link[stats]{coef}}, \code{\link[stats]{fitted}} and \code{\link[stats]{residuals}}.
 }
 \examples{
-  library(lodr)
-  ## Using example dataset provided in lodr package: lod_data_ex
-  ## 3 covariates: X1, X2, X3 with X2 and X3 subject to a lower limit of
-  ## detection of 0
+ library(lodr)
+ ## Using example dataset provided in lodr package: lod_data_ex
+ ## 3 covariates: X1, X2, X3 with X2 and X3 subject to a lower limit of
+ ## detection of 0
 
-  fit <- lod_lm(data=lod_data_ex, frmla=Y~X1+X2+X3, lod=c(0,0),
+ fit <- lod_lm(data=lod_data_ex, frmla=Y~X1+X2+X3, lod=c(0,0),
                    var_LOD=c("X2", "X3"))
  summary(fit)
 }

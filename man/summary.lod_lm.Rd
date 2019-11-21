@@ -20,7 +20,7 @@
   \code{summary.lod_lm} returns a list of summary statistics of the fitted linear model given in \code{object}, using the components (list elements) "\code{call}" and "\code{terms}" from its argument, plus
 
   \item{residuals}{residuals computed by \code{lod_lm}}
-  \item{coefficients}{a \code{p x 4}} matrix  for the estimated coefficient, its standard error, t-statistic and corresponding (two-sided) p-value.
+  \item{coefficients}{a \code{p x 4} matrix  for the estimated coefficient, its standard error, t-statistic and corresponding (two-sided) p-value.}
   \item{sigma}{the square root of the estimated variance of the random error.}
   \item{df}{degrees of freedom, a vector \code{(p, n-p)}, where \code{p} is the number of regression coefficients and n is the sample size of the data used in the model fitting}
 }
@@ -37,12 +37,12 @@ Maintainer: Kevin Donovan <kmdono02@ad.unc.edu>
   The model fitting function \code{\link[lodr]{lod_lm}}.
 }
 \examples{
-  library(lodr)
-  ## Using example dataset provided in lodr package: lod_data_ex
-  ## 3 covariates: X1, X2, X3 with X2 and X3 subject to a lower limit of
-  ## detection of 0
+ library(lodr)
+ ## Using example dataset provided in lodr package: lod_data_ex
+ ## 3 covariates: X1, X2, X3 with X2 and X3 subject to a lower limit of
+ ## detection of 0
 
-  fit <- lod_lm(data=lod_data_ex, frmla=Y~X1+X2+X3, lod=c(0,0),
+ fit <- lod_lm(data=lod_data_ex, frmla=Y~X1+X2+X3, lod=c(0,0),
                    var_LOD=c("X2", "X3"))
  summary(fit)
 }
