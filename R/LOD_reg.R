@@ -264,7 +264,7 @@ summary.lod_lm <- function(x){
   
 # print summary
 print.summary.lod_lm <- function(object){
-  return(object$coefficicents)
+  return(object$coefficients)
 }
 
 # coef
