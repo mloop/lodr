@@ -1,17 +1,23 @@
 \name{lod_lm}
 \alias{lod_lm}
+\alias{print.lod_lm}
 \title{
-  Fitting Linear Models with Covariates Subject to a Limit of Detection
+  Fitting Linear Models with Covariates Subject to a Limit of Detection (LOD)
 }
 \description{
   \code{lod_lm} is used to fit linear models while taking into account limits of detection for corresponding covariates.  It carries out the method detailed in \insertCite{may;textual}{lodr} with regression coefficient standard errors calculated using bootstrap resampling.
 }
 \usage{
-  lod_lm(data, frmla, lod=NULL, var_LOD=NULL, fill_in_method="mean",
-  nSamples = 250, convergenceCriterion = 0.001, boots = 25)
+  lod_lm(data, frmla, lod=NULL, var_LOD=NULL, nSamples = 250,
+  fill_in_method="mean", convergenceCriterion = 0.001, boots = 25)
+
+  ## S3 method for class 'lod_lm'
+  \method{print}{lod_lm}(x, ...)
 }
 \arguments{
   \item{data}{a required data frame (or object coercible by \link[base]{as.data.frame} to a data frame) containing the variables in the model.  If not specified, a corresponding error is returned.}
+
+  \item{x}{An object of class "\code{lod_lm}", usually, a result of a call to \code{lod_lm}}
 
   \item{frmla}{an object of class "\link[stats]{formula}" (or one that can be coerced to that class): a symbolic description of the model to be fitted. The details of model specification are given under 'Details'.}
 
@@ -19,13 +25,15 @@
 
   \item{var_LOD}{a character vector specifying which covariates in the model (\code{frmla}) are subject to limits of detection.  Default is \code{NULL}, representing no covariates having limits of detection, which calls \code{lm}.}
 
-  \item{fill_in_method}{a string specifying how values outside of the limits of detection should be handled when calculating residuals and fitted values.  Default is "mean", which uses the mean covariate value.  Another choice is "LOD" which uses the lower limit of detection.}
-
   \item{nSamples}{an integer specifying the number of samples to generate for each subject with covariate values outside of their limits of detection.  For more details, see \insertCite{may;textual}{lodr}.  The default is 250.}
+
+  \item{fill_in_method}{a string specifying how values outside of the limits of detection should be handled when calculating residuals and fitted values.  Default is "mean", which uses the mean covariate value.  Another choice is "LOD" which uses the lower limit of detection.}
 
   \item{convergenceCriterion}{a number specifying the smallest difference between iterations required for the regression coefficient estimation process to complete.  The default is 0.001.}
 
-  \item{boots }{a number specifying the number of bootstrap resamples used for the standard error estimation process for the regression coefficient estimates.  The default is 25.}
+  \item{boots}{a number specifying the number of bootstrap resamples used for the standard error estimation process for the regression coefficient estimates.  The default is 25.}
+
+  \item{...}{further arguments passed to or from other methods.}
 
   }
 \details{

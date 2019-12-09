@@ -1,5 +1,6 @@
 \name{summary.lod_lm}
 \alias{summary.lod_lm}
+\alias{print.summary.lod_lm}
 \title{
   Summarizing Linear Model Fits with Covariates Subject to a Limit of Detection
 }
@@ -7,17 +8,25 @@
   \code{summary} method for class "\code{lod_lm}"
 }
 \usage{
-  summary.lod_lm(object)
+  ## S3 method for class 'lod_lm'
+  \method{summary}{lod_lm}(object, ...)
+
+  ## S3 method for class 'summary.lod_lm'
+  \method{print}{summary.lod_lm}(x, ...)
 }
 \arguments{
-  An object of class "\code{lod_lm}", usually, a result of a call to \item{object}{\link[lodr]{lod_lm}}
+  \item{object}{An object of class "\code{lod_lm}", usually, a result of a call to \link[lodr]{lod_lm}}
+
+  \item{x}{An object of class "\code{summary.lod_lm}", usually, a result of a call to \link[lodr]{summary.lod_lm}}
+
+  \item{...}{further arguments passed to or from other methods.}
 
   }
 \details{
     \code{print.summary.lod_lm} prints a table containing the coefficient estimates, standard errors, etc. from the \code{lod_lm} fit.
   }
 \value{
-  \code{summary.lod_lm} returns a list of summary statistics of the fitted linear model given in \code{object}, using the components (list elements) "\code{call}" and "\code{terms}" from its argument, plus
+  The function \code{summary.lod_lm} returns a list of summary statistics of the fitted linear model given in \code{object}, using the components (list elements) "\code{call}" and "\code{terms}" from its argument, plus
 
   \item{residuals}{residuals computed by \code{lod_lm}}
   \item{coefficients}{a \code{p x 4} matrix  for the estimated coefficient, its standard error, t-statistic and corresponding (two-sided) p-value.}
@@ -34,7 +43,7 @@ Maintainer: Kevin Donovan <kmdono02@ad.unc.edu>
 }
 
 \seealso{
-  The model fitting function \code{\link[lodr]{lod_lm}}.
+  The model fitting function \code{\link[lodr]{lod_lm}}, \code{\link[base]{summary}}.
 }
 \examples{
  library(lodr)

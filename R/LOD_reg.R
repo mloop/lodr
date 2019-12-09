@@ -151,8 +151,7 @@ est_obj <- LOD_fit(y_data=Data[,1],
                    no_of_samples=nSamples, 
                    threshold = convergenceCriterion, 
                    max_iterations = 100,
-                   LOD_u_l = LOD_mat,
-                   sampler = 0)
+                   LOD_u_l = LOD_mat)
 
 # Bootstrap SEs
 boot_obj <- LOD_bootstrap_fit(num_of_boots=boots,
@@ -161,8 +160,7 @@ boot_obj <- LOD_bootstrap_fit(num_of_boots=boots,
                               no_of_samples=nSamples, 
                               threshold = convergenceCriterion, 
                               max_iterations = 100,
-                              LOD_u_l = LOD_mat,
-                              sampler = 0)
+                              LOD_u_l = LOD_mat)
 
 # Create lm_lod object
 LOD_ests <- est_obj$beta_estimate_last_iteration
@@ -217,15 +215,15 @@ return(finalEstimates)
 
 ## Create new generic fns: summary, print, coef, effects, residuals, fitted, vcov
 # print
-print.lod_lm <- function(x){
+print.lod_lm <- function(x,...){
   print(list("call"=x$call,
              "coefficients"=x$coefficients))
 }
 
 # summary
-summary.lod_lm <- function(x){
+summary.lod_lm <- function(object,...){
     output_obj <- list()
-    param_values <- as.list(x$call)
+    param_values <- as.list(object$call)
   
     # coefficients
     coefficients_mat <- matrix(nrow=dim(model.matrix(eval(param_values$frmla),
@@ -234,8 +232,8 @@ summary.lod_lm <- function(x){
     rownames(coefficients_mat) <- colnames(model.matrix(eval(param_values$frmla),
                                                         eval(param_values$data)))
     colnames(coefficients_mat) <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
-    coefficients_mat[,"Estimate"] <- x$coefficients
-    coefficients_mat[,"Std. Error"] <- x$boot_SE
+    coefficients_mat[,"Estimate"] <- object$coefficients
+    coefficients_mat[,"Std. Error"] <- object$boot_SE
     coefficients_mat[,"t value"] <- coefficients_mat[,"Estimate"]/coefficients_mat[,"Std. Error"]
     coefficients_mat[,"Pr(>|t|)"] <- 2*(1-pt(abs(coefficients_mat[,"t value"]),
                                           df=dim(model.matrix(eval(param_values$frmla),
@@ -245,39 +243,39 @@ summary.lod_lm <- function(x){
     output_obj$coefficients <- coefficients_mat
     
     # add in other components found in summary.lm, expect covariance matrix of coef estimates
-    output_obj$call <- x$call
-    output_obj$residuals <- x$residuals
-    output_obj$df <- c(x$rank, x$df.residual)
-    output_obj$sigma <- sum((x$residuals)^2)/(x$df.residual)
-    # ssm <- sum((x$fitted.values-mean(x$model[,1]))^2)
+    output_obj$call <- object$call
+    output_obj$residuals <- object$residuals
+    output_obj$df <- c(object$rank, object$df.residual)
+    output_obj$sigma <- sum((object$residuals)^2)/(object$df.residual)
+    # ssm <- sum((object$fitted.values-mean(object$model[,1]))^2)
     # f_stat <- 
-    #   (ssm/(x$rank-1))/output_obj$sigma
-    # output_obj$fstatistic <- c(f_stat, x$rank-1, x$df.residual)
+    #   (ssm/(object$rank-1))/output_obj$sigma
+    # output_obj$fstatistic <- c(f_stat, object$rank-1, object$df.residual)
     # output_obj$r.squared <- 
-    #   1-(sum((x$residuals)^2)/sum((x$model[,1]-mean(x$model[,1]))^2))
+    #   1-(sum((object$residuals)^2)/sum((object$model[,1]-mean(object$model[,1]))^2))
     # output_obj$adj.r.squared <-
-    #   1-(1-output_obj$r.squared)*((dim(x$mode)[1]-1)/(x$df.residual-1))
+    #   1-(1-output_obj$r.squared)*((dim(object$mode)[1]-1)/(object$df.residual-1))
     class(output_obj) <- "summary.lod_lm"
     
     return(output_obj)
   }
   
 # print summary
-print.summary.lod_lm <- function(object){
-  return(object$coefficients)
+print.summary.lod_lm <- function(x,...){
+  return(x$coefficients)
 }
 
 # coef
-coef.lod_lm <- function(x){
-  print(x$coefficients)
+coef.lod_lm <- function(object,...){
+  print(object$coefficients)
 }
 
 # residuals
-residuals.lod_lm <- function(x){
-  print(x$residuals)
+residuals.lod_lm <- function(object,...){
+  print(object$residuals)
 }
 
-# fitted
-fitted.lod_lm <- function(x){
-  print(x$fitted.values)
+# fitted.values
+fitted.lod_lm <- function(object,...){
+  print(object$fitted.values)
 }
