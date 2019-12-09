@@ -1,25 +1,25 @@
-library(Rcpp)
-library(RcppArmadillo)
+library(lodr)
+## Using example dataset provided in lodr package: lod_data_ex
+## 3 covariates: X1, X2, X3 with X2 and X3 subject to a lower limit of
+## detection of 0
 
-sourceCpp("src/ARMS_slice_LOD.cpp")
+# Replace values marked as under limit of detection using 0 with NA,
+# add column of ones for intercept
+lod_data_with_int <-
+  as.matrix(cbind("Intercept"=rep(1, dim(lod_data_ex)[1]), lod_data_ex))
 
-nSamples=5
-convergenceCriterion=0.001
-data=lodr::lod_data_ex
-frmla=Y~X2+X1+X3
-lod=c(0, 0)
-var_LOD = c("X2","X3")
+lod_data_ex_edit <- data.frame(apply(lod_data_with_int, MARGIN = 2, FUN=function(x){ifelse(x==0, NA, x)}))
 
-y_data_extract <- Data[100,1]
-x_data_extract <- Data[100,-1]
-x_data_extract[is.na(x_data_extract)] <- 0
+# Fit model with bootstrap procedure, report regression parameter estimate standard errors
+LOD_matrix <- cbind(c(NA, NA, -100, -100), c(NA, NA, 0, 0))
 
-slice_fcs_debug(y=y_data_extract, 
-                obs_preds=x_data_extract,
-                missing_pred = 1L,
-                mean_x_preds=xMeanCC,
-                beta=BetaEstimatesCC,
-                sigma_2_y = sigma(ccModel)^2,
-                sigma_x_preds = xCovCC, 
-                init_x0 = x_data_extract[1]
-                )
+bootstrap_fit_object <-
+  LOD_bootstrap_fit(num_of_boots=25, y_data=lod_data_ex_edit[,2], 
+                    x_data=as.matrix(lod_data_ex_edit[,-2]),
+                    no_of_samples=250,
+                    threshold=0.001, max_iterations=100, LOD_u_l=LOD_matrix, sampler=0)
+
+boot_SEs <- apply(do.call("rbind", bootstrap_fit_object), 2, sd)
+names(boot_SEs) <- names(lod_data_with_int[,-2])
+
+boot_SEs
