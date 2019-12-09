@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1570027387083.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "9B9361B9",
+    "lastKnownWriteTime" : 1575925774,
+    "last_content_update" : 1575925774103,
+    "path" : "C:/Users/kmdono02/Desktop/lodr-master/R/LOD_reg.R",
+    "project_path" : "R/LOD_reg.R",
+    "properties" : {
+        "cursorPosition" : "264,7",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
