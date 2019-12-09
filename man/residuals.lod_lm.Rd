@@ -7,8 +7,7 @@
   Extracts residuals from object of class "\code{lod_lm}".
 }
 \usage{
-  ## S3 method for class 'lod_lm'
-  \method{residuals}{lod_lm}(object, ...)
+\method{residuals}{lod_lm}(object, ...)
 }
 \arguments{
 

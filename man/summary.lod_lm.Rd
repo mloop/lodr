@@ -8,11 +8,9 @@
   \code{summary} method for class "\code{lod_lm}"
 }
 \usage{
-  ## S3 method for class 'lod_lm'
-  \method{summary}{lod_lm}(object, ...)
+\method{summary}{lod_lm}(object, ...)
 
-  ## S3 method for class 'summary.lod_lm'
-  \method{print}{summary.lod_lm}(x, ...)
+\method{print}{summary.lod_lm}(x, ...)
 }
 \arguments{
   \item{object}{An object of class "\code{lod_lm}", usually, a result of a call to \link[lodr]{lod_lm}}

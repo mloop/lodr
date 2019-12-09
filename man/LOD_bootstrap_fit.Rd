@@ -7,7 +7,7 @@
   \code{LOD_bootstrap_fit} calls Rcpp code to compute linear model regression parameter standard errors in C++, taking into account covariates with limits of detection per the method detailed in \insertCite{may;textual}{lodr}.
 }
 \usage{
-  LOD_bootstrap_fit(num_of_boots, y_data, x_data, no_of_samples, threshold, max_iterations, LOD_u_l)
+LOD_bootstrap_fit(num_of_boots, y_data, x_data, no_of_samples, threshold, max_iterations, LOD_u_l)
 
 }
 \arguments{

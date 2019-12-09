@@ -8,11 +8,10 @@
   \code{lod_lm} is used to fit linear models while taking into account limits of detection for corresponding covariates.  It carries out the method detailed in \insertCite{may;textual}{lodr} with regression coefficient standard errors calculated using bootstrap resampling.
 }
 \usage{
-  lod_lm(data, frmla, lod=NULL, var_LOD=NULL, nSamples = 250,
-  fill_in_method="mean", convergenceCriterion = 0.001, boots = 25)
+lod_lm(data, frmla, lod=NULL, var_LOD=NULL, nSamples = 250,
+fill_in_method="mean", convergenceCriterion = 0.001, boots = 25)
 
-  ## S3 method for class 'lod_lm'
-  \method{print}{lod_lm}(x, ...)
+\method{print}{lod_lm}(x, ...)
 }
 \arguments{
   \item{data}{a required data frame (or object coercible by \link[base]{as.data.frame} to a data frame) containing the variables in the model.  If not specified, a corresponding error is returned.}
