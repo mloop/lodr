@@ -37,6 +37,18 @@ if(is.numeric(convergenceCriterion)==FALSE|length(convergenceCriterion)>1|conver
 }
   
 ######################################################################
+# Check if boots>0, else print "Boots=0, SEs not computed            #
+######################################################################
+
+if(boots<0){
+  stop("boots must be a nonnegative integer")
+}
+  
+if(boots==0){
+  message("NOTE: boots=0 specified, SEs not computed and marked by NA")
+}
+  
+######################################################################
 # Create required datasets                                           #
 ######################################################################
 
@@ -153,7 +165,11 @@ est_obj <- LOD_fit(y_data=Data[,1],
                    max_iterations = 100,
                    LOD_u_l = LOD_mat)
 
+LOD_ests <- est_obj$beta_estimate_last_iteration
+names(LOD_ests) <- names(BetaEstimatesCC_reorder)
+
 # Bootstrap SEs
+if(boots>0){
 boot_obj <- LOD_bootstrap_fit(num_of_boots=boots,
                               y_data=Data[,1], 
                               x_data=as.matrix(Data[,-1]),
@@ -161,14 +177,14 @@ boot_obj <- LOD_bootstrap_fit(num_of_boots=boots,
                               threshold = convergenceCriterion, 
                               max_iterations = 100,
                               LOD_u_l = LOD_mat)
-
-# Create lm_lod object
-LOD_ests <- est_obj$beta_estimate_last_iteration
-names(LOD_ests) <- names(BetaEstimatesCC_reorder)
-
 boot_SE_reorder <- apply(do.call("rbind", boot_obj), 2, sd)
+
+}else{
+  boot_SE_reorder <- rep(NA, length(BetaEstimatesCC_reorder))
+}
 names(boot_SE_reorder) <- names(BetaEstimatesCC_reorder)
 
+# Create lm_lod object
 finalEstimates$coefficients <- 
   LOD_ests[colnames(model.matrix(frmla, data))]
 finalEstimates$boot_SE <- 

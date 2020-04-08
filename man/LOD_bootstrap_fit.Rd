@@ -54,10 +54,14 @@ lod_data_ex_edit <-
 # Fit model with bootstrap procedure, report regression parameter estimate standard errors
 LOD_matrix <- cbind(c(NA, NA, -100, -100), c(NA, NA, 0, 0))
 
+## no_of_samples set to 50 for computational speed/illustration purposes only.  
+## At least 250 is recommended.  
+## Same for num_of_boots=5; at least 25 is recommended
+ 
 bootstrap_fit_object <-
-  LOD_bootstrap_fit(num_of_boots=25, y_data=lod_data_ex_edit[,2],
+  LOD_bootstrap_fit(num_of_boots=5, y_data=lod_data_ex_edit[,2],
                     x_data=lod_data_ex_edit[,-2],
-                    no_of_samples=250,
+                    no_of_samples=50,
                     threshold=0.001, max_iterations=100, LOD_u_l=LOD_matrix)
 
 boot_SEs <- apply(do.call("rbind", bootstrap_fit_object), 2, sd)

@@ -73,11 +73,14 @@ sigma_2_y_inital <- sigma(lm(y~x1+x2+x3, data=lod_data_ex_edit))^2
 # Fit model, report regression parameter estimates from last iteration
 LOD_matrix <- cbind(c(NA, NA, -100, -100), c(NA, NA, 0, 0))
 
+## no_of_samples set to 100 for computational speed/illustration purposes only.  
+## At least 250 is recommended.
+ 
 fit_object <-
 LOD_fit(y_data=lod_data_ex_edit[,2],
         x_data=as.matrix(lod_data_ex_edit[,-2]),
         mean_x_preds=mean_x_inital, beta=beta_inital_est, sigma_2_y=sigma_2_y_inital,
-        sigma_x_preds=sigma_x_inital, no_of_samples=250,
+        sigma_x_preds=sigma_x_inital, no_of_samples=100,
         threshold=0.001, max_iterations=100, LOD_u_l=LOD_matrix)
 
 fit_object$beta_estimate_last_iteration

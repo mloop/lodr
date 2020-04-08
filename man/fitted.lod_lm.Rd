@@ -44,7 +44,10 @@ library(lodr)
 ## 3 covariates: x1, x2, x3 with x2 and x3 subject to a lower limit of
 ## detection of 0
 
+## nSamples set to 100 for computational speed/illustration purposes only.  
+## At least 250 is recommended.  Same for boots=0; results in NAs returned for standard errors
+ 
 fit <- lod_lm(data=lod_data_ex, frmla=y~x1+x2+x3, lod=c(0,0),
-                  var_LOD=c("x2", "x3"))
+                  var_LOD=c("x2", "x3"), nSamples=100, boots=0)
  fitted(fit)
 }
