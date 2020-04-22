@@ -7,7 +7,8 @@
   \code{LOD_fit} calls Rcpp code to compute linear model regression parameter estimates in C++, taking into account covariates with limits of detection per the method detailed in \insertCite{may;textual}{lodr}.
 }
 \usage{
-LOD_fit(y_data, x_data, mean_x_preds, beta, sigma_2_y, sigma_x_preds, no_of_samples, threshold, max_iterations, LOD_u_l)
+LOD_fit(y_data, x_data, mean_x_preds, beta, sigma_2_y, sigma_x_preds, no_of_samples, 
+threshold, max_iterations, LOD_u_l)
 
 }
 \arguments{

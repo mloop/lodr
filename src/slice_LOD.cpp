@@ -13,7 +13,7 @@ struct norm_parm {
   double y, sigma_2_y;
   arma::vec mean_x_preds, beta, x_preds;
   arma::mat sigma_x_preds;
-  int missing_pred;
+  unsigned int missing_pred;
 };
 
 // Likelihood for 1+ LOD Biomarkers
@@ -29,23 +29,6 @@ double norm_multi(double x, norm_parm d)
   x_preds.shed_row(1); // remove intercept
   arma::vec x_minus_mu = x_preds - (d.mean_x_preds);
   return -0.5*(pow((d.y) - mean_y, 2.0)/(d.sigma_2_y))-0.5*as_scalar(x_minus_mu.t()*inv(d.sigma_x_preds)*x_minus_mu);
-}
-
-// Do same for ARMS sampling (need to refer to d as pointer)
-double norm_multi_arms(double x, void *norm_data)
-{
-  norm_parm *d;
-  d = (norm_parm *)norm_data;
-  arma::vec obs_preds = d->x_preds;
-  obs_preds.shed_row(d->missing_pred);
-  arma::vec beta_obs = d->beta;
-  beta_obs.shed_row(d->missing_pred);
-  double mean_y = dot(obs_preds,beta_obs)+as_scalar((d->beta)(d->missing_pred))*x;
-  arma::vec x_preds = d->x_preds;
-  x_preds(d->missing_pred) = x;
-  x_preds.shed_row(1); // remove intercept
-  arma::vec x_minus_mu = x_preds - (d->mean_x_preds);
-  return -0.5*(pow((d->y) - mean_y, 2.0)/(d->sigma_2_y))-0.5*as_scalar(x_minus_mu.t()*inv(d->sigma_x_preds)*x_minus_mu);
 }
 
 /* ************************** Slice Sampling Code ***************/

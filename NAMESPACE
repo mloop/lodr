@@ -6,7 +6,6 @@ S3method(print,summary.lod_lm)
 S3method(coef,lod_lm)
 S3method(residuals,lod_lm)
 S3method(fitted,lod_lm)
-import(RcppArmadillo)
 importFrom(Rcpp, evalCpp)
 importFrom(Rdpack, reprompt)
 importFrom("stats", "complete.cases", "cov", "gaussian", "glm", "lm",
